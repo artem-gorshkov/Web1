@@ -1,0 +1,48 @@
+
+body {
+    background-color: bisque;
+    font-family: monospace;
+}
+
+table {
+    width: 100%; /* Ширина всей таблицы в процентах */
+    margin-top: 2%;
+    background: aqua;
+    text-align: center;
+    font-family: monospace;
+    font-size: 14pt;
+}
+
+table p,img {
+    vertical-align: top; /* Вертикальное выравнивание в ячейках */
+    margin: 20px 0 0 0;
+}
+
+.Pip:before {
+    text-decoration: line-through;
+    content: "ПИПу";
+}
+
+.Header {
+    font-family: monospace;
+}
+
+.Header * {
+    margin-top: 5px;
+}
+
+.Header h1 {
+    font-size: 25pt;
+}
+
+.Header h2 {
+    font-size: 18pt;
+}
+
+.Header h3 {
+    font-size: 14pt;
+}
+
+.Header h4 {
+    font-size: 14pt;
+}
