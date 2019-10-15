@@ -143,7 +143,7 @@
                         <td>
                             <p>
                                 <label for="textfieldY">Значение Y:</label>
-                                <input type="text" id="textfieldY" autocomplete="off" name="Y">
+                                <input type="text" id="textfieldY" autocomplete="off" name="Y" maxlength="10">
                             </p>
                         </td>
                     </tr>
@@ -180,10 +180,34 @@
     $start = microtime(true);
     if (isset($_GET['X']) && isset($_GET['Y']) && isset($_GET['R'])) {
         $Y = $_GET['Y'];
-        $Y = substr($Y, 0, 8);
-        if (!($Y <= -5 || $Y >= 3)) {
-            $X = $_GET['X'];
-            $R = $_GET['R'];
+        $X = $_GET['X'];
+        $R = $_GET['R'];
+
+        $validX = false;
+        $validR = false;
+
+        for ($i = -2; $i <= 2; $i += 0.5) {
+            if ($i == $X) $validX = true;
+        }
+        for ($i = 1; $i <= 5; $i += 1) {
+            if ($i == $R) $validR = true;
+        }
+
+        if (strlen($Y) > 10) {
+            echo '<tr id="servErr"><td>Превышена допустимая длина</td></tr>';
+        } elseif (!is_numeric($Y)) {
+            echo '<tr id="servErr"><td>Y не число!</td></tr>';
+        } elseif (!is_numeric($R)) {
+            echo '<tr id="servErr"><td>R не число!</td></tr>';
+        } elseif (!is_numeric($X)) {
+            echo '<tr id="servErr"><td>X не число!</td></tr>';
+        } elseif ($Y <= -5 || $Y >= 3) {
+            echo '<tr id="servErr"><td>Y не в диапазоне</td></tr>';
+        } elseif ($validX == false) {
+            echo '<tr id="servErr"><td>Недопустимое значение X</td></tr>';
+        } elseif ($validR == false) {
+            echo '<tr id="servErr"><td>Недопустимое значение R</td></tr>';
+        } elseif (!($Y <= -5 || $Y >= 3)){
             echo "<tr><td><table id=\"answer\"><tr class='bold'><td>X</td><td>Y</td><td>R</td><td>Ответ</td></tr>";
             $Ans = "<tr><td>" . $X . "</td><td>" . $Y . "</td><td>" . $R . "</td><td>";
             if ($X >= 0) {
@@ -221,11 +245,9 @@
     ?>
 </table>
 <script type="text/javascript">
-    //document.getElementById("time").innerHTML = "Текущее время: " + new Date(<?php echo date() ?>);
     let er = document.getElementById("error");
     let textField = document.getElementById("textfieldY");
     let Xfield = document.getElementsByName("X");
-
     let Rfield = document.getElementsByName("R");
 
     function valid() {
@@ -237,17 +259,20 @@
         Rfield.forEach(function (button) {
             if (button.checked) validR = true;
         });
-        let value = textField.value.substring(0, 8);
+        let value = textField.value.substring(0, 10);
         if (value === "" || isNaN(value) || value <= -5 || value >= 3) {
+            if (document.getElementById("servErr") != null) document.getElementById("servErr").innerHTML = "";
             er.innerHTML = "Значение Y должно быть в диапазоне (-5;3)";
             textField.style.borderColor = "red";
             return false;
         }
         if (!validX) {
+            if (document.getElementById("servErr") != null) document.getElementById("servErr").innerHTML = "";
             er.innerHTML = "Укажите значение X";
             return false;
         }
         if (!validR) {
+            if (document.getElementById("servErr") != null) document.getElementById("servErr").innerHTML = "";
             er.innerHTML = "Укажите значение R";
             return false;
         }
