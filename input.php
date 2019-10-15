@@ -40,6 +40,10 @@
             margin: 10px 0 10px 43%;
         }
 
+        .word-break {
+            word-break: break-all;
+        }
+
         #answer td {
             border: 2px solid black;
         }
@@ -142,8 +146,8 @@
                     <tr class="Yellow">
                         <td>
                             <p>
-                                <label for="textfieldY">Значение Y:</label>
-                                <input type="text" id="textfieldY" autocomplete="off" name="Y" maxlength="10">
+                                <label for="textfieldY">Значение Y ∈ (-5;3):</label>
+                                <input type="text" id="textfieldY" autocomplete="off" name="Y" >
                             </p>
                         </td>
                     </tr>
@@ -180,6 +184,8 @@
     $start = microtime(true);
     if (isset($_GET['X']) && isset($_GET['Y']) && isset($_GET['R'])) {
         $Y = $_GET['Y'];
+        $Y = str_ireplace(",", ".", $Y);
+        $Y_Num = substr($_GET['Y'], 0, 10);
         $X = $_GET['X'];
         $R = $_GET['R'];
 
@@ -187,38 +193,36 @@
         $validR = false;
 
         for ($i = -2; $i <= 2; $i += 0.5) {
-            if ($i == $X) $validX = true;
+            if (strcasecmp(strval($i), $X) == 0) $validX = true;
         }
         for ($i = 1; $i <= 5; $i += 1) {
-            if ($i == $R) $validR = true;
+            if (strcasecmp(strval($i), $R) == 0) $validR = true;
         }
 
-        if (strlen($Y) > 10) {
-            echo '<tr id="servErr"><td>Превышена допустимая длина</td></tr>';
-        } elseif (!is_numeric($Y)) {
+        if (!is_numeric($Y)) {
             echo '<tr id="servErr"><td>Y не число!</td></tr>';
         } elseif (!is_numeric($R)) {
             echo '<tr id="servErr"><td>R не число!</td></tr>';
         } elseif (!is_numeric($X)) {
             echo '<tr id="servErr"><td>X не число!</td></tr>';
-        } elseif ($Y <= -5 || $Y >= 3) {
+        } elseif ($Y_Num <= -5 || $Y_Num >= 3) {
             echo '<tr id="servErr"><td>Y не в диапазоне</td></tr>';
         } elseif ($validX == false) {
             echo '<tr id="servErr"><td>Недопустимое значение X</td></tr>';
         } elseif ($validR == false) {
             echo '<tr id="servErr"><td>Недопустимое значение R</td></tr>';
-        } elseif (!($Y <= -5 || $Y >= 3)){
+        } elseif (!($Y_Num <= -5 || $Y_Num >= 3)){
             echo "<tr><td><table id=\"answer\"><tr class='bold'><td>X</td><td>Y</td><td>R</td><td>Ответ</td></tr>";
-            $Ans = "<tr><td>" . $X . "</td><td>" . $Y . "</td><td>" . $R . "</td><td>";
+            $Ans = "<tr><td>" . $X . "</td><td class='word-break'>" . $Y . "</td><td>" . $R . "</td><td>";
             if ($X >= 0) {
-                if ($Y >= 0) {
-                    if ($X <= $R / 2 && $Y <= $R) {
+                if ($Y_Num >= 0) {
+                    if ($X <= $R / 2 && $Y_Num <= $R) {
                         $Ans = $Ans . "Точка в зоне";
                     } else {
                         $Ans = $Ans . "Точка  не в зоне";
                     }
                 } else {
-                    if ($X ^ 2 + $Y ^ 2 <= $R ^ 2) {
+                    if ($X ^ 2 + $Y_Num ^ 2 <= $R ^ 2) {
                         $Ans = $Ans . "Точка в зоне";
                     } else {
                         $Ans = $Ans . "Точка  не в зоне";
@@ -228,7 +232,7 @@
                 if ($Y >= 0) {
                     $Ans = $Ans . "Точка  не в зоне";
                 } else {
-                    if ($Y + $X > -$R / 2) {
+                    if ($Y_Num + $X > -$R / 2) {
                         $Ans = $Ans . "Точка в зоне";
                     } else {
                         $Ans = $Ans . "Точка  не в зоне";
@@ -260,6 +264,7 @@
             if (button.checked) validR = true;
         });
         let value = textField.value.substring(0, 10);
+        value = value.replace(",", ".");
         if (value === "" || isNaN(value) || value <= -5 || value >= 3) {
             if (document.getElementById("servErr") != null) document.getElementById("servErr").innerHTML = "";
             er.innerHTML = "Значение Y должно быть в диапазоне (-5;3)";
