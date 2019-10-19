@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -147,7 +148,7 @@
                         <td>
                             <p>
                                 <label for="textfieldY">Значение Y ∈ (-5;3):</label>
-                                <input type="text" id="textfieldY" autocomplete="off" name="Y" >
+                                <input type="text" id="textfieldY" autocomplete="off" name="Y">
                             </p>
                         </td>
                     </tr>
@@ -177,6 +178,7 @@
                         </td>
                     </tr>
                 </table>
+                <input type="hidden" name="uniqid" value="<?=uniqid()?>">
             </form>
         </td>
     </tr>
@@ -188,7 +190,6 @@
         $Y_Num = substr($_GET['Y'], 0, 10);
         $X = $_GET['X'];
         $R = $_GET['R'];
-
         $validX = false;
         $validR = false;
 
@@ -198,7 +199,6 @@
         for ($i = 1; $i <= 5; $i += 1) {
             if (strcasecmp(strval($i), $R) == 0) $validR = true;
         }
-
         if (!is_numeric($Y)) {
             echo '<tr id="servErr"><td>Y не число!</td></tr>';
         } elseif (!is_numeric($R)) {
@@ -211,42 +211,107 @@
             echo '<tr id="servErr"><td>Недопустимое значение X</td></tr>';
         } elseif ($validR == false) {
             echo '<tr id="servErr"><td>Недопустимое значение R</td></tr>';
-        } elseif (!($Y_Num <= -5 || $Y_Num >= 3)){
-            echo "<tr><td><table id=\"answer\"><tr class='bold'><td>X</td><td>Y</td><td>R</td><td>Ответ</td></tr>";
-            $Ans = "<tr><td>" . $X . "</td><td class='word-break'>" . $Y . "</td><td>" . $R . "</td><td>";
-            if ($X >= 0) {
-                if ($Y_Num >= 0) {
-                    if ($X <= $R / 2 && $Y_Num <= $R) {
-                        $Ans = $Ans . "Точка в зоне";
-                    } else {
-                        $Ans = $Ans . "Точка  не в зоне";
-                    }
-                } else {
-                    if ($X ^ 2 + $Y_Num ^ 2 <= $R ^ 2) {
-                        $Ans = $Ans . "Точка в зоне";
-                    } else {
-                        $Ans = $Ans . "Точка  не в зоне";
-                    }
-                }
-            } else {
-                if ($Y >= 0) {
-                    $Ans = $Ans . "Точка  не в зоне";
-                } else {
-                    if ($Y_Num + $X > -$R / 2) {
-                        $Ans = $Ans . "Точка в зоне";
-                    } else {
-                        $Ans = $Ans . "Точка  не в зоне";
-                    }
-                }
-            }
-            $Ans = $Ans . "</tr></table>";
-            echo $Ans;
-            echo 'Время выполнения скрипта: ' . round((microtime(true) - $start) * pow(10, 6), 3) . ' микросек.';
-            echo '</td></tr><tr><td><div id="time">';
-            echo date(DATE_RFC850) . '</div></td></tr>';
         }
-    }
-    ?>
+    } ?>
+    <tr>
+        <td>
+            <table id="answer">
+                <tr class='bold'>
+                    <td>X</td>
+                    <td>Y</td>
+                    <td>R</td>
+                    <td>Ответ</td>
+                    <td>Время</td>
+                    <td>Время работы скрипта</td>
+                </tr>
+                <?php
+                $history = isset($_SESSION['history']) && is_array($_SESSION['history']) ? $_SESSION['history'] : [];
+                if ((isset($_GET['X']) && isset($_GET['Y']) && isset($_GET['R'])) && !($Y_Num <= -5 || $Y_Num >= 3)) {
+                    $Ans = "<tr><td>" . $X . "</td><td class='word-break'>" . $Y . "</td><td>" . $R . "</td><td>";
+                    if ($X >= 0) {
+                        if ($Y_Num >= 0) {
+                            if ($X <= $R / 2 && $Y_Num <= $R) {
+                                $Ans = $Ans . "Точка в зоне";
+                                $AnsW = "Точка в зоне";
+                            } else {
+                                $Ans = $Ans . "Точка  не в зоне";
+                                $AnsW = "Точка  не в зоне";
+                            }
+                        } else {
+                            if ($X ^ 2 + $Y_Num ^ 2 <= $R ^ 2) {
+                                $Ans = $Ans . "Точка в зоне";
+                                $AnsW = "Точка в зоне";
+                            } else {
+                                $Ans = $Ans . "Точка  не в зоне";
+                                $AnsW = "Точка  не в зоне";
+                            }
+                        }
+                    } else {
+                        if ($Y >= 0) {
+                            $Ans = $Ans . "Точка  не в зоне";
+                            $AnsW = "Точка  не в зоне";
+                        } else {
+                            if ($Y_Num + $X > -$R / 2) {
+                                $Ans = $Ans . "Точка в зоне";
+                                $AnsW = "Точка в зоне";
+                            } else {
+                                $Ans = $Ans . "Точка  не в зоне";
+                                $AnsW = "Точка  не в зоне";
+                            }
+                        }
+                    }
+                    setlocale(LC_ALL, 'ru_RU.UTF-8');
+                    $time = strftime(' %d %b %Y %H:%M:%S', time());
+                    $script = round((microtime(true) - $start) * pow(10, 6), 3) . ' мс';
+                    $uniqid = $_GET['uniqid'];
+                    if ($history[0]["uniqid"] !== $uniqid) {
+                        array_unshift($history, [
+                            'X' => $X,
+                            'Y' => $Y,
+                            'R' => $R,
+                            'Ans' => $AnsW,
+                            'time' => $time,
+                            'script' => $script,
+                            'uniqid' => $uniqid
+                        ]);
+                    }
+                    $_SESSION['history'] = $history;
+
+                }
+                foreach ($history as $result) {
+                    ?>
+                    <tr>
+                    <td><?= $result['X'] ?></td>
+                    <td class="word-break"><?= $result['Y'] ?></td>
+                    <td><?= $result['R'] ?></td>
+                    <td><?= $result["Ans"] ?></td>
+                        <td><?= $result["time"] ?></td>
+                        <td><?= $result["script"] ?></td>
+                    </tr>
+                    <?php
+                }
+                ?></table>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <?php
+            if (isset($_GET['X']) && isset($_GET['Y']) && isset($_GET['R'])) {
+                echo 'Время выполнения скрипта: ' . round((microtime(true) - $start) * pow(10, 6), 3) . ' микросек.';
+            }
+            ?></td>
+    </tr>
+
+    <tr>
+        <td>
+            <div id="time">
+                <?php
+                if (isset($_GET['X']) && isset($_GET['Y']) && isset($_GET['R'])) {
+                    echo date(DATE_RFC850);
+                } ?>
+            </div>
+        </td>
+    </tr>
 </table>
 <script type="text/javascript">
     let er = document.getElementById("error");
@@ -257,10 +322,10 @@
     function valid() {
         let validX = false;
         let validR = false;
-        Xfield.forEach(function (button) {
+        Array.prototype.forEach.call(Xfield, function (button) {
             if (button.checked) validX = true;
         });
-        Rfield.forEach(function (button) {
+        Array.prototype.forEach.call(Rfield, function (button) {
             if (button.checked) validR = true;
         });
         let value = textField.value.substring(0, 10);
