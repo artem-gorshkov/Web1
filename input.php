@@ -7,14 +7,15 @@
     <link rel="stylesheet" href="reset.css">
     <style type="text/css">
         body {
-            background-color: blueviolet;
+            background: #45688E;
             font-family: monospace;
+            color: black;
         }
 
         table {
             width: 100%;
             margin-top: 2%;
-            background: aqua;
+            background: url("img/xv.png") white;
             text-align: center;
             font-family: monospace;
             font-size: 14pt;
@@ -35,10 +36,10 @@
         }
 
         #answer {
-            background: aquamarine;
-            width: 15%;
+            background: #5E81A8;
+            width: 60%;
             table-layout: auto;
-            margin: 10px 0 10px 43%;
+            margin: 10px 0 10px 20%;
         }
 
         .word-break {
@@ -56,7 +57,7 @@
 
         .Header {
             font-family: monospace;
-            color: white;
+            color: #45688E;
         }
 
         .Header * {
@@ -65,7 +66,7 @@
 
         .Header h1 {
             font-size: 25pt;
-            color: black;
+            color: darkblue;
         }
 
         .Header h2 {
@@ -74,28 +75,28 @@
 
         .Header h3 {
             font-size: 14pt;
-            color: grey;
+            color: #5E81A8;
         }
 
         .Header h4 {
             font-size: 14pt;
-            color: darkgrey;
+            color: cornflowerblue;
         }
 
         .bold {
             font-weight: bold;
         }
 
-        .Yellow:focus-within {
-            background: yellow;
+        .Blue:focus-within {
+            background: #45688E;
         }
 
         [type="submit"] {
             margin-top: 1%;
         }
 
-        #time {
-            margin-top: 1%;
+        #error {
+            color = red;
         }
     </style>
 </head>
@@ -103,7 +104,7 @@
 <table id="mainTable">
     <tr>
         <td>
-            <div class="Header">
+            <div class="Header bold">
                 <h1>Лабораторная работа №1 по <span class="Pip"> Веб-программированию</span></h1>
                 <h2>Вариант №211006</h2>
                 <h3>Выполнил: Горшков Артем Владимирович</h3>
@@ -144,7 +145,7 @@
                             </p>
                         </td>
                     </tr>
-                    <tr class="Yellow">
+                    <tr class="Blue">
                         <td>
                             <p>
                                 <label for="textfieldY">Значение Y ∈ (-5;3):</label>
@@ -178,7 +179,7 @@
                         </td>
                     </tr>
                 </table>
-                <input type="hidden" name="uniqid" value="<?=uniqid()?>">
+                <input type="hidden" name="uniqid" value="<?= uniqid() ?>">
             </form>
         </td>
     </tr>
@@ -222,7 +223,7 @@
                     <td>R</td>
                     <td>Ответ</td>
                     <td>Время</td>
-                    <td>Время работы скрипта</td>
+                    <td>Время работы скрипта (в мс)</td>
                 </tr>
                 <?php
                 $history = isset($_SESSION['history']) && is_array($_SESSION['history']) ? $_SESSION['history'] : [];
@@ -262,7 +263,8 @@
                     }
                     setlocale(LC_ALL, 'ru_RU.UTF-8');
                     $time = strftime(' %d %b %Y %H:%M:%S', time());
-                    $script = round((microtime(true) - $start) * pow(10, 6), 3) . ' мс';
+                    $script = round((microtime(true) - $start) * 10 ** 3, 3);
+                    $script = str_ireplace(",", ".", $script);
                     $uniqid = $_GET['uniqid'];
                     if ($history[0]["uniqid"] !== $uniqid) {
                         array_unshift($history, [
@@ -281,12 +283,12 @@
                 foreach ($history as $result) {
                     ?>
                     <tr>
-                    <td><?= $result['X'] ?></td>
-                    <td class="word-break"><?= $result['Y'] ?></td>
-                    <td><?= $result['R'] ?></td>
-                    <td><?= $result["Ans"] ?></td>
+                        <td><?= $result['X'] ?></td>
+                        <td class="word-break"><?= $result['Y'] ?></td>
+                        <td><?= $result['R'] ?></td>
+                        <td><?= $result["Ans"] ?></td>
                         <td><?= $result["time"] ?></td>
-                        <td><?= $result["script"] ?></td>
+                        <td class="script_time"><?= $result["script"] ?></td>
                     </tr>
                     <?php
                 }
@@ -294,23 +296,7 @@
         </td>
     </tr>
     <tr>
-        <td>
-            <?php
-            if (isset($_GET['X']) && isset($_GET['Y']) && isset($_GET['R'])) {
-                echo 'Время выполнения скрипта: ' . round((microtime(true) - $start) * pow(10, 6), 3) . ' микросек.';
-            }
-            ?></td>
-    </tr>
-
-    <tr>
-        <td>
-            <div id="time">
-                <?php
-                if (isset($_GET['X']) && isset($_GET['Y']) && isset($_GET['R'])) {
-                    echo date(DATE_RFC850);
-                } ?>
-            </div>
-        </td>
+        <td id="stand_deviation"></td>
     </tr>
 </table>
 <script type="text/javascript">
@@ -318,6 +304,26 @@
     let textField = document.getElementById("textfieldY");
     let Xfield = document.getElementsByName("X");
     let Rfield = document.getElementsByName("R");
+    let script_time = [];
+    Array.prototype.forEach.call(document.getElementsByClassName("script_time"), el => {
+        script_time.push(el.textContent);
+    });
+    if (script_time.length !== 0) {
+        document.getElementById("stand_deviation").innerHTML = "Время стандартного отклонения работы скрипта: " + calc_stand_deviation(script_time) + " мс.";
+    }
+
+    function calc_stand_deviation(arr) {
+        let sum = 0;
+        Array.prototype.forEach.call(arr, (el) => {
+            sum = sum + parseFloat(el);
+        });
+        let mid_arifm = sum / arr.length;
+        let sum_of_sq = 0;
+        Array.prototype.forEach.call(arr, el => {
+            sum_of_sq += Math.pow((parseFloat(el) - mid_arifm), 2);
+        });
+        return Math.round(Math.sqrt(sum_of_sq / arr.length) * Math.pow(10,6)) / Math.pow(10,6);
+    }
 
     function valid() {
         let validX = false;
@@ -338,7 +344,7 @@
         }
         if (!validX) {
             if (document.getElementById("servErr") != null) document.getElementById("servErr").innerHTML = "";
-            er.innerHTML = "Укажите значение X";
+            er.innerText = "Укажите значение X";
             return false;
         }
         if (!validR) {
