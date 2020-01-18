@@ -1,2 +1,2 @@
-# WEB_Lab
-Repository for my labs 
+# WEB1
+Simple PHP web application
